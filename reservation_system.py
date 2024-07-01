@@ -112,9 +112,9 @@ def cancel_reservation(reservations_file,table_number):
             # Example usage
 reservation = 'reservations_file.csv'
 table_number = 4  # The table ID to identify the row to delete
-cancel_reservation(reservation, table_number)
+# cancel_reservation(reservation, table_number)
                 
 # view_tables(lists_of_table)
-make_reservation(lists_of_table,reservations_file)
-# view_reservations(reservations_file)   
+# make_reservation(lists_of_table,reservations_file)
+view_reservations(reservations_file)   
 # cancel_reservation()
