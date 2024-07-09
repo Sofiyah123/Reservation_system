@@ -9,7 +9,8 @@ lists_of_table = [
     {'table':6, 'seats':7}
 ]
 # available_tables = [table for table in lists_of_table if table['seats'] >]
-reservations_file = 'reservations_file.csv'
+reservations_file = 'reservation_assignment/reservations_file.csv'
+
 def view_tables(lists_of_table):
     for table in lists_of_table:
         print(table)
@@ -102,54 +103,87 @@ def cancel_reservation(reservations_file,table_number,name):
             writer.writerows(reservations)
             
 
-def update_reservation(reservations_file, table_number_to_update, name_to_update, date_to_update):
-    with open(reservations_file, mode='r', newline='') as file:
-        reader = csv.reader(file)
-        header = next(reader)  # Assuming the first row is the header
-        rows = []
+import csv
 
-        # Iterate through each row and update the specified one
-        for res in reader:
-            print(type(res[header.index('Table Number')]))
-            if (int(res[header.index('Table Number')]) == table_number_to_update and 
-                res[header.index('Name')] == name_to_update and 
-                res[header.index('Date')] == date_to_update):
-                # Create the updated row as a list
-                updated_row = res
-                new_name = input('Enter your Name: ')
-                new_contact  = input('Enter your Contact Number')
-                new_party_size = int(input('Enter Number of People: '))
-                new_start_time =  input('Enter Reservation Start Time (HH:MM): ')
-                new_end_time =  input('Enter Reservation End time (HH:MM): ')
-                new_date =  input('Enter reservation Date (YYYY-MM-DD): ')
-                new_table_number = int(input("Enter the New table Number"))
-                
-                updated_row[header.index('Name')] = new_name
-                updated_row[header.index('Contact')] = new_contact
-                updated_row[header.index('Party Size')] = new_party_size
-                updated_row[header.index('Start time')] = new_start_time
-                updated_row[header.index('End time')] = new_end_time
-                updated_row[header.index('Date')] = new_date
-                updated_row[header.index('Table Number')] = new_table_number
-                
-                rows.append(updated_row)
-            else:
-                rows.append(res)
+def modify_reservation(file_path, table_number, name, date):
+    # Collect user input for the updated row
+    new_name = input("Enter the new Name: ")
+    new_contact = input("Enter the new Contact ")
+    new_party_size = input("Enter the new Party Size ")
+    new_start_time = input("Enter the new Start time (HH:MM): ")
+    new_end_time = input("Enter the new End time (HH:MM): ")
+    new_table_number = input("Enter the new Table Number ")
+    new_reservation_date = input("Enter the new reservation Date (YYYY-MM-DD): ")
+    
+    
 
-    # Write the updated content back to the CSV file
-    with open(reservations_file, mode='w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(header)
-        writer.writerows(rows)
+    try:
+        # Read the content of the CSV file
+        with open(file_path, mode='r', newline='') as file:
+            reader = csv.DictReader(file)
+            header = reader.fieldnames
+            
+            # Debug: Print the header
+            # print("Header:", header)
+            # Check if the necessary columns are present in the header
+            required_columns = ['Name','Contact','Party Size','Start time', 'End time','Date','Table Number']
+            for col in required_columns:
+                if col not in header:
+                    print(f"Error: Required column '{col}' not found in the CSV header.")
+                    return
+            
+            rows = []
+            record_found = False  # Flag to track if a record was updated
 
-# Example usage
-# file_path = 'reservations.csv'
-# table_number_to_check = 3
-# name_to_check = 'Sofiyah'
-# date_to_check = '2024-07-07'
+            # Iterate through each row and update the specified one
+            for res in reader:
+                # Debug: Print the row being processed
+                # print("Processing row:", res)
+                #The res.get function is a method for dictionaries in Python, which allows you to 
+                # retrieve the value associated with a given key.
+                table_number_value = res.get('Table Number') 
+                name_value = res.get('Name')
+                date_value = res.get('Date')
+                # Check if the row matches the criteria
+                if (table_number_value is not None and 
+                    name_value is not None and 
+                    date_value is not None and
+                    int(table_number_value) == table_number and 
+                    name_value == name and 
+                    date_value == date):
+                    
+                    # Create the updated row as a dictionary
+                    updated_row = res
+                    updated_row['Date'] = new_reservation_date
+                    updated_row['Start time'] = new_start_time
+                    updated_row['End time'] = new_end_time
+                    updated_row['Name'] = new_name
+                    updated_row['Contact'] = new_contact
+                    updated_row['Party Size'] = new_party_size
+                    updated_row['Table Number'] = new_table_number
+                    rows.append(updated_row)
+                    record_found = True  # Set the flag to True
+                else:
+                    rows.append(res)
 
+        # Write the updated content back to the CSV file
+        with open(file_path, mode='w', newline='') as file:
+            writer = csv.DictWriter(file, fieldnames=header)
+            writer.writeheader()
+            writer.writerows(rows)
 
-# Function to make the code run at the Terminal
+         # Provide feedback based on whether the record was found and updated
+        if record_found:
+            print(f"Record for Table Number {table_number}, Name {name}, Date {date} has been updated.")
+        else:
+            print(f"No record found for Table Number {table_number}, Name {name}, Date {date}.")
+
+    except Exception as e:
+        print(f"Error updating record: {e}")
+
+# def daily_summary(reservations_file, date):
+
+# # Function to make the code run at the Terminal
 def start():
         print("Choose from the below options 1-5")
         print("Option 1 stands for View Table: ")
@@ -157,6 +191,7 @@ def start():
         print("Option 3 stands for Cancel reservation: ")
         print("Option 4 stands for View Reservations: ")
         print("Option 5 stands for Modify Reservation: ")
+        print("Option 6 stands for daily summary: ")
         function_label = int(input('Enter number for the action you want to perform: '))
         if function_label == 1:
             view_tables(lists_of_table)
@@ -172,7 +207,7 @@ def start():
             table_number_to_update = int(input("Enter the table number to update: "))
             name_to_update = input("Enter the name of the reservation to update: ")
             date_to_update = input("Enter the date of the reservation to update (YYYY-MM-DD): ")
-            update_reservation(reservations_file, table_number_to_update, name_to_update, date_to_update)
+            modify_reservation(reservations_file, table_number_to_update, name_to_update, date_to_update)
         else:
             print("You entered invalid Number")
 start()
