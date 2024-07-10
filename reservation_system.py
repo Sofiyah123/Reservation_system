@@ -10,7 +10,7 @@ lists_of_table = [
     {'table':6, 'seats':7}
 ]
 # available_tables = [table for table in lists_of_table if table['seats'] >]
-reservations_file = 'reservation_assignment/reservations_file.csv'
+reservations_file = 'reservations_file.csv'
 
 def view_tables(lists_of_table):
     for table in lists_of_table:
@@ -20,11 +20,13 @@ def view_tables(lists_of_table):
 available_tables = []
 def make_reservation(lists_of_table, reservations_file):
     name = input('Enter your Name: ')
-    contact  = input('Enter your Contact Number')
+    name = name.lower()
+    contact  = input('Enter your Contact Number ')
     party_size = int(input('Enter Number of People: '))
     start_time =  input('Enter Reservation Start Time (HH:MM): ')
     end_time =  input('Enter Reservation End time (HH:MM): ')
     date =  input('Enter reservation Date (YYYY-MM-DD): ')
+
     #available_tables variable stores the lists of tables that are available for reservation
     available_tables = [table for table in lists_of_table if table['seats'] >= party_size]
     if not available_tables:
@@ -80,7 +82,10 @@ def view_reservations(reservations_file):
                 print(f"Here is the lists of reservations that has been made:")
                 print(header)
                 for row in reader:
-                    print(f"{row[header.index('Name')]},{row[header.index('Contact')]}, {row[header.index('Party Size')]},{row[header.index('Start time')]},{row[header.index('End time')]},{row[header.index('Date')]}, {row[header.index('Table Number')]}")
+                    print(f"{row[header.index('Name')]},{row[header.index('Contact')]},\
+                          {row[header.index('Party Size')]},{row[header.index('Start time')]},\
+                          {row[header.index('End time')]},{row[header.index('Date')]},\
+                          {row[header.index('Table Number')]}")
         except Exception as e:
             print(f"Error viewing reservation:{e}")
                 
@@ -88,12 +93,15 @@ def view_reservations(reservations_file):
 # The parameter table_number serves as the unique id that is been used to 
 # identify the particular reservation what will be deleted
 
-def cancel_reservation(reservations_file,table_number,name):
+def cancel_reservation(reservations_file):
+    table_number = int(input("Enter table number that needs to be deleted "))
+    name = input("Enter Name of the Table ")
+    name = name.lower()
     with open(reservations_file, mode='r', newline='') as file:      
         reader = csv.reader(file)
         header = next(reader,None)    
         reservations = list(reader)
-        print("reader is", reader)
+        # print("reader is", reader)
         row_to_remove =[reservations.remove(reserved_table) for reserved_table in reservations 
                                    if(int(reserved_table[header.index('Table Number')]) == table_number) and 
                                    ((reserved_table[header.index('Name')]) == name) ]
@@ -103,18 +111,21 @@ def cancel_reservation(reservations_file,table_number,name):
             writer = csv.writer(file)
             writer.writerows(reservations)
             
-def modify_reservation(reservations_file, table_number, name, date):
+def modify_reservation(reservations_file):
+    #collect user input inorder to extract the row to be updated
+    table_number_to_update = int(input("Enter the table number to update: "))
+    name_to_update = input("Enter the name of the reservation to update: ")
+    name_to_update = name_to_update.lower()
+    date_to_update = input("Enter the date of the reservation to update (YYYY-MM-DD): ")
     # Collect user input for the updated row
     new_name = input("Enter the new Name: ")
+    new_name = new_name.lower()
     new_contact = input("Enter the new Contact ")
     new_party_size = input("Enter the new Party Size ")
     new_start_time = input("Enter the new Start time (HH:MM): ")
     new_end_time = input("Enter the new End time (HH:MM): ")
     new_table_number = input("Enter the new Table Number ")
     new_reservation_date = input("Enter the new reservation Date (YYYY-MM-DD): ")
-    
-    
-
     try:
         # Read the content of the CSV file
         with open(reservations_file, mode='r', newline='') as file:
@@ -129,7 +140,6 @@ def modify_reservation(reservations_file, table_number, name, date):
                 if col not in header:
                     print(f"Error: Required column '{col}' not found in the CSV header.")
                     return
-            
             rows = []
             record_found = False  # Flag to track if a record was updated
 
@@ -146,9 +156,9 @@ def modify_reservation(reservations_file, table_number, name, date):
                 if (table_number_value is not None and 
                     name_value is not None and 
                     date_value is not None and
-                    int(table_number_value) == table_number and 
-                    name_value == name and 
-                    date_value == date):
+                    int(table_number_value) == table_number_to_update and 
+                    name_value == name_to_update and 
+                    date_value == date_to_update):
                     
                     # Create the updated row as a dictionary
                     updated_row = res
@@ -172,35 +182,38 @@ def modify_reservation(reservations_file, table_number, name, date):
 
          # Provide feedback based on whether the record was found and updated
         if record_found:
-            print(f"Record for Table Number {table_number}, Name {name}, Date {date} has been updated.")
+            print(f"Record for Table Number {table_number_to_update}, Name {name_to_update}, Date {date_to_update} has been updated.")
         else:
-            print(f"No record found for Table Number {table_number}, Name {name}, Date {date}.")
+            print(f"No record found for Table Number {table_number_to_update}, Name {name_to_update}, Date {date_to_update}.")
 
     except Exception as e:
         print(f"Error updating record: {e}")
 
 def daily_summary(reservations_file):
     # Get the current date
-    today = datetime.now().strftime('%Y-%m-%d')
+    summary_option = int(input("Enter 1 for Today Summary \nEnter 2 for any other day\n"))
+    if summary_option == 1:
+        date = datetime.now().strftime('%Y-%m-%d')
+        print("date = ", date)
+    else:
+        date = input("Enter Date to find it summary ")
+    
     try:
         # Read the content of the CSV file
         with open(reservations_file, mode='r', newline='') as file:
             reader = csv.DictReader(file)
-            header = reader.fieldnames
-        # Filter reservations for today
-            todays_reservations = [res for res in reader if res.get('Date') == today]
-            
+        # Filter reservations for the date
+            reservations = [res for res in reader if res.get('Date') == date ]
             # Print summary
-            if todays_reservations:
-                print(f"Summary of reservations for today - {today}:")
-                for each_reservation in todays_reservations:
-                    
-                    print(f" Name: {each_reservation.get('Name')} Contact: {each_reservation.get('Contact')} Party Size:{each_reservation.get('Party Size')}  Reservation Start Time: {each_reservation.get('Start time')} Reservation End Time: {each_reservation.get('End time')}, Reservation Date: {each_reservation.get('Date')} Reservation Table Number: {each_reservation.get('Table Number')} ")
+            if reservations:
+                print(f"Summary of reservations for - {date}:")
+                for each_reservation in reservations:
+                    print(f" Name: {each_reservation.get('Name')} Contact:{each_reservation.get('Contact')} Party Size:{each_reservation.get('Party Size')} Reservation Start Time: {each_reservation.get('Start time')} Reservation End Time: {each_reservation.get('End time')} Reservation Date: {each_reservation.get('Date')} Reservation Table Number: {each_reservation.get('Table Number')} ")
             else:
-                print(f"No reservations for {today}.")
+                print(f"No reservations for {date}.")
 
     except Exception as e:
-        print(f"Error updating record: {e}")
+        print(f"Error getting daily summary: {e}")
 
 # # Function to make the code run at the Terminal
 def start():
@@ -217,18 +230,12 @@ def start():
         elif function_label == 2:
             make_reservation(lists_of_table, reservations_file)
         elif function_label == 3:
-            table_number = int(input("Enter table number that needs to be deleted "))
-            name = input("Enter Name of the Table ")
-            cancel_reservation(reservations_file,table_number,name)
+            cancel_reservation(reservations_file)
         elif function_label == 4:
             view_reservations(reservations_file)
         elif function_label == 5:
-            table_number_to_update = int(input("Enter the table number to update: "))
-            name_to_update = input("Enter the name of the reservation to update: ")
-            date_to_update = input("Enter the date of the reservation to update (YYYY-MM-DD): ")
-            modify_reservation(reservations_file, table_number_to_update, name_to_update, date_to_update)
+            modify_reservation(reservations_file)
         elif function_label == 6:
-        
             daily_summary(reservations_file)
         else:
             print("You entered invalid Number")
