@@ -1,5 +1,6 @@
 import csv
 import os
+from datetime import datetime
 lists_of_table = [
     {'table':1, 'seats':6},
     {'table':2, 'seats':5},
@@ -102,10 +103,7 @@ def cancel_reservation(reservations_file,table_number,name):
             writer = csv.writer(file)
             writer.writerows(reservations)
             
-
-import csv
-
-def modify_reservation(file_path, table_number, name, date):
+def modify_reservation(reservations_file, table_number, name, date):
     # Collect user input for the updated row
     new_name = input("Enter the new Name: ")
     new_contact = input("Enter the new Contact ")
@@ -119,7 +117,7 @@ def modify_reservation(file_path, table_number, name, date):
 
     try:
         # Read the content of the CSV file
-        with open(file_path, mode='r', newline='') as file:
+        with open(reservations_file, mode='r', newline='') as file:
             reader = csv.DictReader(file)
             header = reader.fieldnames
             
@@ -167,7 +165,7 @@ def modify_reservation(file_path, table_number, name, date):
                     rows.append(res)
 
         # Write the updated content back to the CSV file
-        with open(file_path, mode='w', newline='') as file:
+        with open(reservations_file, mode='w', newline='') as file:
             writer = csv.DictWriter(file, fieldnames=header)
             writer.writeheader()
             writer.writerows(rows)
@@ -181,7 +179,28 @@ def modify_reservation(file_path, table_number, name, date):
     except Exception as e:
         print(f"Error updating record: {e}")
 
-# def daily_summary(reservations_file, date):
+def daily_summary(reservations_file):
+    # Get the current date
+    today = datetime.now().strftime('%Y-%m-%d')
+    try:
+        # Read the content of the CSV file
+        with open(reservations_file, mode='r', newline='') as file:
+            reader = csv.DictReader(file)
+            header = reader.fieldnames
+        # Filter reservations for today
+            todays_reservations = [res for res in reader if res.get('Date') == today]
+            
+            # Print summary
+            if todays_reservations:
+                print(f"Summary of reservations for today - {today}:")
+                for each_reservation in todays_reservations:
+                
+                    print(f"{each_reservation}")
+            else:
+                print(f"No reservations for {today}.")
+
+    except Exception as e:
+        print(f"Error updating record: {e}")
 
 # # Function to make the code run at the Terminal
 def start():
@@ -208,6 +227,9 @@ def start():
             name_to_update = input("Enter the name of the reservation to update: ")
             date_to_update = input("Enter the date of the reservation to update (YYYY-MM-DD): ")
             modify_reservation(reservations_file, table_number_to_update, name_to_update, date_to_update)
+        elif function_label == 6:
+        
+            daily_summary(reservations_file)
         else:
             print("You entered invalid Number")
 start()
