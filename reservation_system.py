@@ -194,8 +194,8 @@ def daily_summary(reservations_file):
             if todays_reservations:
                 print(f"Summary of reservations for today - {today}:")
                 for each_reservation in todays_reservations:
-                
-                    print(f"{each_reservation}")
+                    
+                    print(f" Name: {each_reservation.get('Name')} Contact: {each_reservation.get('Contact')} Party Size:{each_reservation.get('Party Size')}  Reservation Start Time: {each_reservation.get('Start time')} Reservation End Time: {each_reservation.get('End time')}, Reservation Date: {each_reservation.get('Date')} Reservation Table Number: {each_reservation.get('Table Number')} ")
             else:
                 print(f"No reservations for {today}.")
 
